@@ -20,9 +20,13 @@ class PageController extends Controller
 
         $this->data['title'] = $page->title;
         $this->data['page'] = $page->withFakes();
-        $articles = Article::where('status', 'PUBLISHED')->orderBy('created_at', 'desc')->take(5)->get();
-        $items = Item::where('status', 'PUBLISHED')->orderBy('created_at', 'desc')->take(5)->get();
+
+        $articles_limit = \Config::get('settings.articles_per_page');
+        $items_limit = \Config::get('settings.items_per_page');
         
+        $articles = Article::where('status', 'PUBLISHED')->orderBy('created_at', 'desc')->take($articles_limit)->get();
+        $items = Item::where('status', 'PUBLISHED')->orderBy('created_at', 'desc')->take($items_limit)->get();
+
         return view('pages.'.$page->template, $this->data)
                         ->with('news', $articles)
                         ->with('items', $items);

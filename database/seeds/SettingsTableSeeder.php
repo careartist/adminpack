@@ -15,6 +15,26 @@ class SettingsTableSeeder extends Seeder
     public function run()
     {
         DB::table('settings')->insert([
+            'key'           => 'articles_per_page',
+            'name'          => 'Articles (news) per page',
+            'description'   => 'Define how many articles apears per page',
+            'value'         => '3',
+            'field'         => '{"name":"value","label":"Value", "title":"Articles value" ,"type":"textarea"}',
+            'active'        => 1,
+
+        ]);
+
+        DB::table('settings')->insert([
+            'key'           => 'items_per_page',
+            'name'          => 'Items (art works) pre page',
+            'description'   => 'Define how many items apears per page',
+            'value'         => '5',
+            'field'         => '{"name":"value","label":"Value", "title":"Items value" ,"type":"textarea"}',
+            'active'        => 1,
+
+        ]);
+
+        DB::table('settings')->insert([
             'key'           => 'contact_email',
             'name'          => 'Contact form email address',
             'description'   => 'The email address that all emails from the contact form will go to.',

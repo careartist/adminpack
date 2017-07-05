@@ -1,0 +1,489 @@
+Backpack install packages
+https://laravel-backpack.readme.io/docs/install-on-laravel-54
+
+1.1
+Install Backpack\base
+
+	composer require backpack/base
+
+1.2
+Add to service providers - in config/app.php
+
+	/*
+	* Backpack Service Providers...
+	*/
+	Backpack\Base\BaseServiceProvider::class,
+
+1.3
+Run a few commands in the terminal:
+
+	php artisan vendor:publish --provider="Backpack\Base\BaseServiceProvider" #publishes configs, langs, views and AdminLTE files
+	php artisan vendor:publish --provider="Prologue\Alerts\AlertsServiceProvider" # publish config for notifications - prologue/alerts
+	php artisan migrate #generates users table (using Laravel's default migrations)
+
+1.4
+Make sure the reset password emails have the correct reset link by adding these to your User model:
+
+	- before class name:
+		use Backpack\Base\app\Notifications\ResetPasswordNotification as ResetPasswordNotification;
+
+	- as a method inside the User class:
+
+    		/**
+     		* Send the password reset notification.
+     		*
+     		* @param  string  $token
+     		* @return void
+     		*/
+    		public function sendPasswordResetNotification($token)
+    		{
+        		$this->notify(new ResetPasswordNotification($token));
+    		}
+
+1.5
+[optional]
+Backpack comes with a generators package that helps you create models, controllers, requests, etc from the command line. 
+laracasts/generators is an awesome package you can use to generate migrations. 
+Install them only if you want (for your local environment only - that's why the --dev flag). 
+But using them can greatly improve your speed:
+
+	composer require backpack/generators --dev
+	composer require laracasts/generators --dev
+
+	!!! laracasts/generators compatibility with Laravel 5.4
+	As of 03 Feb 2017, laracasts/generators is not officially compatible with L5.4. 
+	We have submitted the fixes, they've been merged, they work perfectly, but they haven't been officially published. 
+	For now, you can install laracasts/generators on L5.4 by:
+
+		1) manually specifying this in your composer.json file, in the require-dev section:
+        		"laracasts/generators": "dev-master as 1.1.4",
+		2) then running composer update
+
+1.6
+[optional]
+Change values in config/backpack/base.php to make the admin panel your own. 
+Backpack is white label, so you can change everything: menu color, project name, developer name etc.
+
+
+2.1
+Install Backpack\CRUD
+
+	composer require backpack/crud
+
+2.2
+Add to service providers - in config/app.php
+
+	/* Backpack CRUD Service */
+	Backpack\CRUD\CrudServiceProvider::class,
+
+2.3
+Run these command in this exact order:
+
+	php artisan elfinder:publish #published elfinder assets
+	php artisan vendor:publish --provider="Backpack\CRUD\CrudServiceProvider" --tag="public" #publish CRUD assets
+	php artisan vendor:publish --provider="Backpack\CRUD\CrudServiceProvider" --tag="lang" #publish CRUD lang files 
+	php artisan vendor:publish --provider="Backpack\CRUD\CrudServiceProvider" --tag="config" #publish CRUD and custom elfinder config files
+	php artisan vendor:publish --provider="Backpack\CRUD\CrudServiceProvider" --tag="elfinder" #publish custom elFinder views
+
+2.4
+Define an 'uploads' disk. In your config/filesystems.php add this disk:
+
+	'uploads' => [
+            'driver' => 'local',
+            'root' => public_path('uploads'),
+        ],
+2.5
+Create "uploads" folder in your public folder.
+
+2.6
+[Optional]
+You can now add the file manager to the menu, in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li><a href="{{ url(config('backpack.base.route_prefix', 'admin') . '/elfinder') }}"><i class="fa fa-files-o"></i> <span>File manager</span></a></li>
+
+
+3.1
+Install Backpack\LangFileManager
+
+	composer require backpack/langfilemanager
+
+3.2
+Add to service providers - in config/app.php
+
+	/* Backpack LangFileManager */
+	Backpack\LangFileManager\LangFileManagerServiceProvider::class,
+
+3.3
+Run the migration, seed and file publishing
+
+	php artisan migrate --path=vendor/backpack/langfilemanager/src/database/migrations
+	php artisan db:seed --class="Backpack\LangFileManager\database\seeds\LanguageTableSeeder"
+	php artisan vendor:publish --provider="Backpack\LangFileManager\LangFileManagerServiceProvider" --tag="config" #publish the config file
+	php artisan vendor:publish --provider="Backpack\LangFileManager\LangFileManagerServiceProvider" --tag="lang" #publish the lang files
+
+3.4
+[Optional]
+You can now add it to the menu, in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li><a href="{{ url(config('backpack.base.route_prefix', 'admin') . '/language') }}"><i class="fa fa-flag-o"></i> <span>Languages</span></a></li>
+	<li><a href="{{ url(config('backpack.base.route_prefix', 'admin') . '/language/texts') }}"><i class="fa fa-language"></i> <span>Language Files</span></a></li>
+
+
+4.1
+Install Backpack\BackupManager
+
+	composer require backpack/backupmanager
+
+4.2
+Add to service providers - in config/app.php
+
+	/* Backpack BackupManager */
+	Spatie\Backup\BackupServiceProvider::class,
+	Backpack\BackupManager\BackupManagerServiceProvider::class,
+
+4.3
+Publish the config file and lang files:
+
+	php artisan vendor:publish --provider="Backpack\BackupManager\BackupManagerServiceProvider"
+
+4.4
+Add a new "disk" to config/filesystems.php:
+
+        // used for Backpack/BackupManager
+        'backups' => [
+            'driver' => 'local',
+            'root'   => storage_path('backups'), // that's where your backups are stored by default: storage/backups
+        ],
+
+	*This is where you choose a different driver if you want your backups to be stored somewhere else 
+	(S3, Dropbox, Google Drive, Box, etc).
+
+4.5
+If you need to change the path to the mysql_dump command, you can do that in your config/database.php file. 
+
+	'dump_command_path' => 'C:\\xampp\\mysql\\bin', // only the path, so without 'mysqldump' or 'pg_dump'
+
+	'dump_command_timeout' => 60 * 5, // 5 minute timeout
+	'dump_using_single_transaction' => true,
+
+4.6
+[optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li><a href="{{ url(config('backpack.base.route_prefix', 'admin').'/backup') }}"><i class="fa fa-hdd-o"></i> <span>Backups</span></a></li>
+
+4.7
+[optional]
+Modify your backup options in config/laravel-backup.php
+4.8
+[optional]
+Instruct Laravel to run the backups automatically in your console kernel:
+
+	// app/Console/Kernel.php
+	protected function schedule(Schedule $schedule)
+	{
+   		$schedule->command('backup:clean')->daily()->at('04:00');
+   		$schedule->command('backup:run')->daily()->at('05:00');
+	}
+
+
+5.1
+Install Backpack\LogManager
+
+	composer require backpack/logmanager
+
+5.2
+Add to service providers - in config/app.php
+
+	/* Backpack LogManager */
+	Backpack\LogManager\LogManagerServiceProvider::class,
+
+5.3
+Add a "storage" filesystem in config/filesystems.php:
+
+	// used for Backpack/LogManager
+	'storage' => [
+            'driver' => 'local',
+            'root'   => storage_path(),
+        ],
+
+5.4
+[Optional]
+Configure Laravel to create a new log file for every day, in your .ENV file, if it's not already. 
+Otherwise there will only be one file at all times.
+
+	APP_LOG=daily
+
+or directly in your config/app.php file:
+
+	'log' => env('APP_LOG', 'daily'),
+
+5.5
+[Optional]
+Publish the lang files if you think you'll need to modify them.
+
+	php artisan vendor:publish --provider="Backpack\LogManager\LogManagerServiceProvider"
+
+5.6
+[optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li><a href="{{ url(config('backpack.base.route_prefix', 'admin').'/log') }}"><i class="fa fa-terminal"></i> <span>Logs</span></a></li>
+
+
+6.1
+Useful CRUD: Backpack\Settings
+
+	composer require backpack/settings
+
+6.2
+Add to service providers - in config/app.php
+
+	/* Backpack Settings */
+	Backpack\Settings\SettingsServiceProvider::class,
+
+6.3
+Run the migration and add some example settings:
+
+	php artisan vendor:publish --provider="Backpack\Settings\SettingsServiceProvider"
+	php artisan migrate
+	php artisan db:seed --class="Backpack\Settings\database\seeds\SettingsTableSeeder"
+
+6.4
+[Optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li><a href="{{ url(config('backpack.base.route_prefix', 'admin').'/setting') }}"><i class="fa fa-cog"></i> <span>Settings</span></a></li>
+
+
+7.1
+Useful CRUD: Backpack\PageManager
+
+	composer require backpack/pagemanager
+
+
+7.2
+Add to service providers - in config/app.php
+
+	/* Backpack PageManager */
+	Cviebrock\EloquentSluggable\ServiceProvider::class, 
+	Backpack\PageManager\PageManagerServiceProvider::class,
+
+7.3
+Publish the views, migrations and the PageTemplates trait:
+
+	php artisan vendor:publish --provider="Backpack\PageManager\PageManagerServiceProvider"
+
+7.4
+Run the migration to have the database table we need:
+
+	php artisan migrate
+
+7.5
+[optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li><a href="{{ url(config('backpack.base.route_prefix', 'admin').'/page') }}"><i class="fa fa-file-o"></i> <span>Pages</span></a></li>
+
+
+
+8.1
+Useful CRUD: Backpack\PermissionManager
+https://github.com/Laravel-Backpack/PermissionManager#install
+
+	composer require backpack/permissionmanager
+
+8.2
+Add to service providers - in config/app.php
+
+	/* Backpack PageManager */
+	Backpack\PermissionManager\PermissionManagerServiceProvider::class,
+
+8.3
+Publish the config file & run the migrations
+
+	php artisan vendor:publish --provider="Backpack\PermissionManager\PermissionManagerServiceProvider" #publish config files and migrations
+	php artisan migrate #create the role and permission tables
+
+8.4
+Use the following traits on your User model:
+
+	use Backpack\CRUD\CrudTrait; // this one
+	use Spatie\Permission\Traits\HasRoles; // and this one
+	---------------------------
+	use CrudTrait; // this
+    	use HasRoles; // and this
+
+
+8.5
+[Optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+  	<li class="treeview">
+    		<a href="#"><i class="fa fa-group"></i> <span>Users, Roles, Permissions</span> <i class="fa fa-angle-left pull-right"></i></a>
+    		<ul class="treeview-menu">
+      			<li><a href="{{ url(config('backpack.base.route_prefix', 'admin') . '/user') }}"><i class="fa fa-user"></i> <span>Users</span></a></li>
+      			<li><a href="{{ url(config('backpack.base.route_prefix', 'admin') . '/role') }}"><i class="fa fa-group"></i> <span>Roles</span></a></li>
+      			<li><a href="{{ url(config('backpack.base.route_prefix', 'admin') . '/permission') }}"><i class="fa fa-key"></i> <span>Permissions</span></a></li>
+    		</ul>
+  	</li>
+
+8.6
+[Optional]
+Disallow create/update on your roles or permissions after you define them, 
+using the config file in config/backpack/permissionmanager.php. 
+Please note permissions and roles are referenced in code using their name. 
+If you let your admins edit these strings and they do, your permission and role checks will stop working.
+
+
+9.1
+Useful CRUD: Backpack\MenuCRUD
+https://github.com/Laravel-Backpack/MenuCRUD
+
+	composer require backpack/MenuCRUD
+
+9.2
+Add to service providers - in config/app.php
+
+	/* Backpack MenuCRUD */
+	Backpack\MenuCRUD\MenuCRUDServiceProvider::class,
+
+9.3
+Publish the migration:
+
+	php artisan vendor:publish --provider="Backpack\MenuCRUD\MenuCRUDServiceProvider"
+
+9.4
+Run the migration to have the database table we need:
+
+	php artisan migrate
+
+9.5
+[optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li><a href="{{ url('admin/menu-item') }}"><i class="fa fa-list"></i> <span>Menu</span></a></li>
+
+
+10.1
+Useful CRUD: Backpack\NewsCRUD
+https://github.com/Laravel-Backpack/NewsCRUD
+
+	composer require backpack/newscrud
+
+10.2
+Add to service providers - in config/app.php
+
+	/* Backpack NewsCRUD */
+	Backpack\NewsCRUD\NewsCRUDServiceProvider::class,
+
+10.3
+Publish the migration:
+
+	php artisan vendor:publish --provider="Backpack\NewsCRUD\NewsCRUDServiceProvider"
+
+10.4
+Run the migration to have the database table we need:
+
+	php artisan migrate
+
+10.5
+[optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li class="treeview">
+		<a href="#"><i class="fa fa-newspaper-o"></i> <span>News</span> <i class="fa fa-angle-left pull-right"></i></a>
+    		<ul class="treeview-menu">
+      			<li><a href="{{ url('admin/article') }}"><i class="fa fa-newspaper-o"></i> <span>Articles</span></a></li>
+      			<li><a href="{{ url('admin/category') }}"><i class="fa fa-list"></i> <span>Categories</span></a></li>
+      			<li><a href="{{ url('admin/tag') }}"><i class="fa fa-tag"></i> <span>Tags</span></a></li>
+    		</ul>
+	</li>
+
+
+11.1
+Useful CRUD: Backpack\ItemsCRUD
+Add to project composer.json file
+
+	- add to require:
+	"require": {
+		"backpack/itemscrud": "dev-master"
+
+	},
+
+
+	- add repositories section
+	"repositories": [
+{
+
+		"type": "package",
+		"package": {
+
+			"name": "backpack/itemscrud",
+			"version": "dev-master",
+
+			"source": {
+
+				"url": "https://github.com/careartist/itemscrud.git",
+				"type": "git",
+				"reference": "master"
+
+			},
+			"autoload": {
+				"psr-4" : {
+
+					"Backpack\\ItemsCRUD\\" : "src"
+
+				}
+
+			}
+		}
+
+	}
+],
+	run:
+	composer update
+
+11.2
+Add to service providers - in config/app.php
+
+	/* Backpack ItemsCRUD */
+	Backpack\ItemsCRUD\ItemsCRUDServiceProvider::class,
+
+11.3
+Publish the migration:
+
+	php artisan vendor:publish --provider="Backpack\ItemsCRUD\ItemsCRUDServiceProvider"
+
+11.4
+Run the migration to have the database table we need:
+
+	php artisan migrate
+
+11.5
+[optional]
+Add a menu item for it in resources/views/vendor/backpack/base/inc/sidebar.blade.php or menu.blade.php:
+
+	<li class="treeview">
+		<a href="#"><i class="fa fa-newspaper-o"></i> <span>Items</span> <i class="fa fa-angle-left pull-right"></i></a>
+    		<ul class="treeview-menu">
+      			<li><a href="{{ url('admin/item') }}"><i class="fa fa-newspaper-o"></i> <span>Items</span></a></li>
+      			<li><a href="{{ url('admin/type') }}"><i class="fa fa-list"></i> <span>Types</span></a></li>
+      			<li><a href="{{ url('admin/material') }}"><i class="fa fa-tag"></i> <span>Materials</span></a></li>
+    		</ul>
+	</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
